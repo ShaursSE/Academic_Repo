@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Archive — Academic Document Repository</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+
+/* ============================================================
+   TOKENS
+   ============================================================ */
+:root{
+  --paper:       #EFEAE0;
+  --paper-dim:   #E4DECD;
+  --card:        #F7F4EC;
+  --ink:         #201A14;
+  --ink-soft:    #5B5245;
+  --rule:        #C9BFA4;
+  --rule-strong: #A99C7C;
+  --brick:       #8C3527;
+  --brick-dark:  #6E2A20;
+  --pine:        #33502F;
+  --pine-dark:   #253B22;
+
+  --serif: "Source Serif 4", Georgia, serif;
+  --sans:  "Public Sans", -apple-system, sans-serif;
+  --mono:  "IBM Plex Mono", "Courier New", monospace;
+
+  --radius: 3px;
+}
+
+*{ box-sizing:border-box; }
+html,body{ margin:0; padding:0; }
+body{
+  background:var(--paper);
+  background-image:
+    repeating-linear-gradient(0deg, transparent, transparent 27px, rgba(169,156,124,0.13) 28px);
+  color:var(--ink);
+  font-family:var(--sans);
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+a{ color:inherit; }
+button{ font-family:inherit; }
+
+/* ============================================================
+   LAYOUT SHELL
+   ============================================================ */
+.app{
+  max-width:960px;
+  margin:0 auto;
+  padding:40px 24px 80px;
+}
+
+.masthead{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  gap:16px;
+  border-bottom:3px double var(--rule-strong);
+  padding-bottom:16px;
+  margin-bottom:28px;
+}
+.masthead .stamp{
+  width:46px; height:46px;
+  border:2px solid var(--brick);
+  border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  color:var(--brick);
+  font-family:var(--mono); font-weight:600; font-size:11px;
+  transform:rotate(-8deg);
+  flex-shrink:0;
+}
+.masthead h1{
+  font-family:var(--serif);
+  font-weight:700;
+  font-size:34px;
+  letter-spacing:0.5px;
+  margin:0;
+  line-height:1;
+}
+.masthead .tagline{
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:var(--ink-soft);
+  margin-top:6px;
+}
+.masthead-left{ display:flex; gap:14px; align-items:center; }
+.masthead-right{
+  font-family:var(--mono);
+  font-size:11px;
+  color:var(--ink-soft);
+  text-align:right;
+  line-height:1.6;
+}
+#repo-status-dot{ display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--rule-strong); margin-right:5px; }
+#repo-status-dot.ok{ background:var(--pine); }
+#repo-status-dot.err{ background:var(--brick); }
+
+/* ---- folder-tab navigation ---- */
+.tab-nav{
+  display:flex;
+  gap:3px;
+  padding-left:8px;
+  align-items:flex-end;
+}
+.tab-btn{
+  font-family:var(--serif);
+  font-size:15px;
+  font-weight:600;
+  color:var(--ink-soft);
+  background:var(--paper-dim);
+  border:1px solid var(--rule);
+  border-bottom:none;
+  padding:11px 26px 9px;
+  cursor:pointer;
+  position:relative;
+  top:5px;
+  border-radius:6px 6px 0 0;
+  transition:top .12s ease, color .12s ease, background .12s ease;
+}
+.tab-btn:hover{ color:var(--ink); }
+.tab-btn.active{
+  background:var(--card);
+  color:var(--ink);
+  top:0;
+  border-bottom:1px solid var(--card);
+  box-shadow:0 -3px 8px rgba(32,26,20,0.06);
+  z-index:2;
+}
+.tab-btn:focus-visible, button:focus-visible, input:focus-visible{
+  outline:2px solid var(--brick);
+  outline-offset:2px;
+}
+
+.panel-shell{
+  background:var(--card);
+  border:1px solid var(--rule);
+  border-radius:0 6px 6px 6px;
+  box-shadow:0 10px 30px rgba(32,26,20,0.07);
+  min-height:420px;
+}
+.tab-panel{ display:none; padding:32px; }
+.tab-panel.active{ display:block; }
+
+.eyebrow{
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  color:var(--brick);
+  margin:0 0 8px;
+}
+.panel-title{
+  font-family:var(--serif);
+  font-size:22px;
+  font-weight:600;
+  margin:0 0 4px;
+}
+.panel-sub{
+  color:var(--ink-soft);
+  font-size:14px;
+  margin:0 0 24px;
+  max-width:560px;
+}
+
+/* ---- banners / empty states ---- */
+.banner{
+  border:1px solid var(--rule-strong);
+  background:var(--paper-dim);
+  border-radius:var(--radius);
+  padding:14px 16px;
+  font-size:13px;
+  color:var(--ink-soft);
+  margin-bottom:20px;
+}
+.banner.error{ border-color:var(--brick); color:var(--brick-dark); background:#F4E3DE; }
+.banner code{ font-family:var(--mono); background:rgba(0,0,0,0.06); padding:1px 5px; border-radius:2px; }
+
+/* ============================================================
+   SEARCH TAB
+   ============================================================ */
+.search-row{
+  display:flex;
+  gap:10px;
+  margin-bottom:16px;
+}
+.input-mono{
+  font-family:var(--mono);
+  font-size:14px;
+  padding:11px 14px;
+  border:1px solid var(--rule-strong);
+  border-radius:var(--radius);
+  background:#fff;
+  color:var(--ink);
+  width:100%;
+}
+.input-mono:focus{ border-color:var(--brick); }
+
+.chip-row{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:22px; }
+.chip{
+  font-family:var(--mono);
+  font-size:11.5px;
+  letter-spacing:0.4px;
+  text-transform:uppercase;
+  padding:6px 13px;
+  border:1px solid var(--rule-strong);
+  border-radius:20px;
+  background:transparent;
+  color:var(--ink-soft);
+  cursor:pointer;
+}
+.chip.active{ background:var(--brick); color:#fff; border-color:var(--brick); }
+
+.doc-list{ list-style:none; margin:0; padding:0; }
+.doc-row{
+  display:flex;
+  align-items:baseline;
+  gap:10px;
+  padding:12px 4px;
+  border-bottom:1px solid var(--rule);
+  cursor:pointer;
+}
+.doc-row:hover .doc-name{ color:var(--brick); }
+.doc-row:hover{ background:rgba(140,53,39,0.04); }
+.doc-folder-tag{
+  font-family:var(--mono);
+  font-size:10.5px;
+  text-transform:uppercase;
+  letter-spacing:0.5px;
+  color:var(--pine-dark);
+  background:rgba(51,80,47,0.10);
+  padding:3px 7px;
+  border-radius:3px;
+  flex-shrink:0;
+}
+.doc-name{
+  font-family:var(--serif);
+  font-size:15px;
+  flex:1;
+  min-width:0;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.doc-view-hint{
+  font-family:var(--mono);
+  font-size:10.5px;
+  color:var(--ink-soft);
+  text-decoration:underline dotted;
+  flex-shrink:0;
+}
+.empty-state{
+  text-align:center;
+  padding:50px 20px;
+  color:var(--ink-soft);
+  font-size:14px;
+}
+.empty-state .glyph{ font-size:26px; display:block; margin-bottom:10px; opacity:.5; }
+
+/* ============================================================
+   RESULTS TAB
+   ============================================================ */
+.field-label{
+  font-family:var(--mono);
+  font-size:11px;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  color:var(--ink-soft);
+  display:block;
+  margin-bottom:6px;
+}
+.results-form{ max-width:380px; }
+.btn{
+  font-family:var(--mono);
+  font-size:12.5px;
+  letter-spacing:0.6px;
+  text-transform:uppercase;
+  padding:11px 22px;
+  border:1px solid var(--brick);
+  background:var(--brick);
+  color:#fff;
+  border-radius:var(--radius);
+  cursor:pointer;
+  margin-top:14px;
+}
+.btn:hover{ background:var(--brick-dark); }
+.btn.ghost{
+  background:transparent;
+  color:var(--ink-soft);
+  border-color:var(--rule-strong);
+  margin-top:0;
+  margin-bottom:22px;
+}
+.btn.ghost:hover{ color:var(--ink); border-color:var(--ink-soft); background:transparent; }
+
+table.marks-table{
+  width:100%;
+  border-collapse:collapse;
+  margin-bottom:30px;
+  font-size:14px;
+}
+table.marks-table th{
+  font-family:var(--mono);
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:0.6px;
+  text-align:left;
+  color:var(--ink-soft);
+  border-bottom:2px solid var(--rule-strong);
+  padding:8px 10px;
+}
+table.marks-table td{
+  padding:12px 10px;
+  border-bottom:1px solid var(--rule);
+  font-family:var(--serif);
+}
+table.marks-table td.mono, table.marks-table td.num{ font-family:var(--mono); }
+table.marks-table td.num{ text-align:right; }
+
+.answer-sheet-block{
+  border-top:2px double var(--rule-strong);
+  padding-top:18px;
+}
+.answer-sheet-link{
+  display:inline-block;
+  font-family:var(--mono);
+  font-size:14px;
+  color:var(--brick);
+  text-decoration:underline dotted;
+  cursor:pointer;
+}
+.answer-sheet-link:hover{ color:var(--brick-dark); }
+
+/* ============================================================
+   DOCUMENTS TAB
+   ============================================================ */
+details.folder-group{
+  border-bottom:1px solid var(--rule);
+  padding:6px 0;
+}
+details.folder-group summary{
+  cursor:pointer;
+  font-family:var(--serif);
+  font-size:16px;
+  font-weight:600;
+  padding:10px 4px;
+  list-style:none;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+details.folder-group summary::-webkit-details-marker{ display:none; }
+details.folder-group summary .count{
+  font-family:var(--mono);
+  font-size:11px;
+  color:var(--ink-soft);
+  font-weight:400;
+}
+details.folder-group summary::before{
+  content:"▸";
+  color:var(--brick);
+  margin-right:8px;
+  display:inline-block;
+  transition:transform .12s ease;
+}
+details.folder-group[open] summary::before{ transform:rotate(90deg); }
+details.folder-group .doc-list{ padding-left:20px; margin-bottom:10px; }
+
+.toolbar-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:20px;
+}
+.link-btn{
+  font-family:var(--mono);
+  font-size:11.5px;
+  letter-spacing:0.5px;
+  text-transform:uppercase;
+  background:none;
+  border:none;
+  color:var(--ink-soft);
+  cursor:pointer;
+  text-decoration:underline dotted;
+}
+.link-btn:hover{ color:var(--brick); }
+
+/* ============================================================
+   PDF VIEWER MODAL
+   ============================================================ */
+.modal-overlay{
+  position:fixed; inset:0;
+  background:rgba(24,18,12,0.72);
+  display:flex; align-items:center; justify-content:center;
+  z-index:999;
+  padding:24px;
+}
+.modal-overlay.hidden{ display:none; }
+.viewer-box{
+  background:var(--card);
+  width:min(920px, 100%);
+  height:min(88vh, 940px);
+  border-radius:6px;
+  border:1px solid var(--rule-strong);
+  box-shadow:0 24px 70px rgba(0,0,0,0.4);
+  display:flex; flex-direction:column;
+  overflow:hidden;
+}
+.viewer-header{
+  display:flex; justify-content:space-between; align-items:center;
+  padding:12px 16px;
+  border-bottom:1px solid var(--rule);
+  gap:12px;
+}
+.viewer-title{
+  font-family:var(--mono);
+  font-size:12.5px;
+  color:var(--ink-soft);
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.viewer-actions{ display:flex; gap:14px; align-items:center; flex-shrink:0; }
+.viewer-actions a, .viewer-close{
+  font-family:var(--mono);
+  font-size:11.5px;
+  text-transform:uppercase;
+  letter-spacing:0.5px;
+  color:var(--ink-soft);
+  text-decoration:underline dotted;
+  cursor:pointer;
+  background:none;
+  border:none;
+}
+.viewer-close{ color:var(--brick); font-size:16px; text-decoration:none; }
+.viewer-box iframe{ flex:1; border:none; width:100%; background:#525659; }
+.viewer-fallback{
+  flex:1;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:10px; padding:30px; text-align:center; color:var(--ink-soft); font-size:14px;
+}
+
+@media (max-width:640px){
+  .masthead{ flex-direction:column; align-items:flex-start; gap:10px; }
+  .masthead-right{ text-align:left; }
+  .tab-btn{ padding:10px 15px; font-size:13.5px; }
+  .tab-panel{ padding:22px 16px; }
+  table.marks-table{ font-size:12.5px; }
+}
+
+@media (prefers-reduced-motion: reduce){
+  *{ transition:none !important; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <div class="masthead">
+    <div class="masthead-left">
+      <div class="stamp">ARC<br>·H·</div>
+      <div>
+        <h1>Archive</h1>
+        <div class="tagline">Academic Document Repository</div>
+      </div>
+    </div>
+    <div class="masthead-right">
+      <div><span id="repo-status-dot"></span><span id="repo-status-text">Connecting…</span></div>
+      <div id="repo-status-detail">—</div>
+    </div>
+  </div>
+
+  <nav class="tab-nav">
+    <button class="tab-btn active" data-tab="search">Search</button>
+    <button class="tab-btn" data-tab="results">Results</button>
+    <button class="tab-btn" data-tab="documents">Documents</button>
+  </nav>
+
+  <div class="panel-shell">
+
+    <!-- ============ SEARCH TAB ============ -->
+    <section class="tab-panel active" id="tab-search">
+      <p class="eyebrow">Catalogue Search</p>
+      <h2 class="panel-title">Find a document</h2>
+      <p class="panel-sub">Search across every folder in the repository, or narrow by subject using the filters below.</p>
+
+      <div id="search-config-banner"></div>
+
+      <div class="search-row">
+        <input type="text" id="search-input" class="input-mono" placeholder="Search by file name…" autocomplete="off">
+      </div>
+      <div class="chip-row" id="search-chips"></div>
+
+      <ul class="doc-list" id="search-results"></ul>
+    </section>
+
+    <!-- ============ RESULTS TAB ============ -->
+    <section class="tab-panel" id="tab-results">
+
+      <div id="results-form-view">
+        <p class="eyebrow">Marks Lookup</p>
+        <h2 class="panel-title">Look up a paper code</h2>
+        <p class="panel-sub">Enter a paper code to view marks and locate the matching answer sheet stored in the repository.</p>
+
+        <div id="results-config-banner"></div>
+
+        <form class="results-form" id="results-form">
+          <label class="field-label" for="paper-code-input">Paper Code</label>
+          <input type="text" id="paper-code-input" class="input-mono" placeholder="e.g. 56/1/1" autocomplete="off" required>
+          <button type="submit" class="btn">Look Up</button>
+        </form>
+      </div>
+
+      <div id="results-report-view" style="display:none;">
+        <button class="btn ghost" id="results-back-btn">← New Search</button>
+        <p class="eyebrow">Report</p>
+        <h2 class="panel-title" id="report-title">Paper Code</h2>
+
+        <div id="report-marks-area"></div>
+
+        <div class="answer-sheet-block">
+          <p class="field-label">Answer Sheet</p>
+          <div id="report-as-area"></div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ============ DOCUMENTS TAB ============ -->
+    <section class="tab-panel" id="tab-documents">
+      <p class="eyebrow">Full Catalogue</p>
+      <h2 class="panel-title">Browse all documents</h2>
+      <p class="panel-sub">Every folder in the repository, listed alphabetically. Expand a subject to see its documents.</p>
+
+      <div id="documents-config-banner"></div>
+
+      <div class="toolbar-row">
+        <span></span>
+        <button class="link-btn" id="documents-refresh-btn">↻ Refresh from repository</button>
+      </div>
+
+      <div id="documents-list"></div>
+    </section>
+
+  </div>
+</div>
+
+<!-- ============ PDF VIEWER MODAL ============ -->
+<div class="modal-overlay hidden" id="viewer-modal">
+  <div class="viewer-box">
+    <div class="viewer-header">
+      <div class="viewer-title" id="viewer-title">document.pdf</div>
+      <div class="viewer-actions">
+        <a id="viewer-newtab" href="#" target="_blank" rel="noopener">Open in new tab</a>
+        <button class="viewer-close" id="viewer-close" aria-label="Close viewer">✕</button>
+      </div>
+    </div>
+    <iframe id="viewer-frame" title="Document viewer"></iframe>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   CONFIG — fill these in before deploying to GitHub Pages
+   ============================================================ */
+const CONFIG = {
+  owner:  "YOUR_GITHUB_USERNAME",   // e.g. "shaurs"
+  repo:   "YOUR_REPO_NAME",         // e.g. "academic-archive"
+  branch: "main"                    // the branch GitHub Pages deploys from
+};
+
+/* ============================================================
+   STATE
+   ============================================================ */
+let allDocs = [];       // [{ name, path, folder, ext }]
+let folderNames = [];   // ["Chemistry","English",...] — derived live from the repo tree
+let activeFilters = new Set();
+let marksData = [];     // from marks.json
+let repoReady = false;
+
+const isConfigured = () =>
+  CONFIG.owner !== "YOUR_GITHUB_USERNAME" && CONFIG.repo !== "YOUR_REPO_NAME";
+
+const CONFIG_MSG = `
+  <div class="banner error">
+    <strong>Repository not configured.</strong> Open this file and set <code>CONFIG.owner</code>,
+    <code>CONFIG.repo</code> and <code>CONFIG.branch</code> near the top of the &lt;script&gt; tag
+    to point at your GitHub repository, then re-deploy.
+  </div>`;
+
+/* ============================================================
+   TAB SWITCHING
+   ============================================================ */
+document.querySelectorAll(".tab-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
+  });
+});
+
+/* ============================================================
+   LOAD REPO TREE (GitHub API) — this is what makes the site
+   auto-update when a folder or file is added to the repo.
+   ============================================================ */
+async function loadRepo(){
+  const dot = document.getElementById("repo-status-dot");
+  const text = document.getElementById("repo-status-text");
+  const detail = document.getElementById("repo-status-detail");
+
+  if(!isConfigured()){
+    dot.className = "err";
+    text.textContent = "Not configured";
+    detail.textContent = "Edit CONFIG in index.html";
+    ["search-config-banner","results-config-banner","documents-config-banner"].forEach(id=>{
+      document.getElementById(id).innerHTML = CONFIG_MSG;
+    });
+    renderDocuments(); renderSearchResults();
+    return;
+  }
+
+  text.textContent = "Connecting…";
+  try{
+    const url = `https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/git/trees/${CONFIG.branch}?recursive=1`;
+    const res = await fetch(url);
+    if(!res.ok) throw new Error(`GitHub API responded ${res.status}`);
+    const data = await res.json();
+
+    const docs = [];
+    (data.tree || []).forEach(item => {
+      if(item.type !== "blob") return;
+      if(!item.path.includes("/")) return; // skip root-level files (index.html, marks.json, README, etc.)
+      const parts = item.path.split("/");
+      const folder = parts[0];
+      const name = parts[parts.length - 1];
+      if(name.startsWith(".")) return;
+      const ext = name.includes(".") ? name.split(".").pop().toLowerCase() : "";
+      docs.push({ name, path: item.path, folder, ext });
+    });
+
+    allDocs = docs;
+    folderNames = [...new Set(docs.map(d => d.folder))].sort((a,b)=>a.localeCompare(b));
+
+    dot.className = "ok";
+    text.textContent = "Connected";
+    detail.textContent = `${CONFIG.owner}/${CONFIG.repo} @ ${CONFIG.branch}`;
+    repoReady = true;
+
+    ["search-config-banner","results-config-banner","documents-config-banner"].forEach(id=>{
+      document.getElementById(id).innerHTML = "";
+    });
+
+  } catch(err){
+    dot.className = "err";
+    text.textContent = "Connection failed";
+    detail.textContent = err.message;
+    const msg = `<div class="banner error"><strong>Could not read the repository.</strong>
+      ${err.message}. Check that <code>CONFIG.owner</code>/<code>CONFIG.repo</code>/<code>CONFIG.branch</code>
+      are correct, that the repository is public, and that the GitHub API rate limit hasn't been hit
+      (60 requests/hour when not signed in).</div>`;
+    ["search-config-banner","results-config-banner","documents-config-banner"].forEach(id=>{
+      document.getElementById(id).innerHTML = msg;
+    });
+  }
+
+  renderChips();
+  renderSearchResults();
+  renderDocuments();
+}
+
+/* ============================================================
+   LOAD marks.json (optional data file at repo root)
+   Schema: [{ "subject":"Chemistry", "paperCode":"56/1/1",
+              "marksObtained":42, "maximumMarks":50 }, ...]
+   ============================================================ */
+async function loadMarks(){
+  try{
+    const res = await fetch("./marks.json", { cache: "no-store" });
+    if(!res.ok) throw new Error("not found");
+    marksData = await res.json();
+  } catch(err){
+    marksData = [];
+  }
+}
+
+/* ============================================================
+   SEARCH TAB
+   ============================================================ */
+function renderChips(){
+  const box = document.getElementById("search-chips");
+  box.innerHTML = "";
+  const allChip = document.createElement("button");
+  allChip.className = "chip" + (activeFilters.size === 0 ? " active" : "");
+  allChip.textContent = "All subjects";
+  allChip.addEventListener("click", () => { activeFilters.clear(); renderChips(); renderSearchResults(); });
+  box.appendChild(allChip);
+
+  folderNames.forEach(folder => {
+    const chip = document.createElement("button");
+    chip.className = "chip" + (activeFilters.has(folder) ? " active" : "");
+    chip.textContent = folder;
+    chip.addEventListener("click", () => {
+      activeFilters.has(folder) ? activeFilters.delete(folder) : activeFilters.add(folder);
+      renderChips(); renderSearchResults();
+    });
+    box.appendChild(chip);
+  });
+}
+
+function renderSearchResults(){
+  const list = document.getElementById("search-results");
+  const query = document.getElementById("search-input").value.trim().toLowerCase();
+  list.innerHTML = "";
+
+  if(!repoReady){
+    return;
+  }
+
+  const matches = allDocs
+    .filter(d => activeFilters.size === 0 || activeFilters.has(d.folder))
+    .filter(d => d.name.toLowerCase().includes(query))
+    .sort((a,b) => a.name.localeCompare(b.name));
+
+  if(matches.length === 0){
+    list.innerHTML = `<div class="empty-state"><span class="glyph">○</span>
+      ${allDocs.length === 0 ? "No documents found in the repository yet." : "No documents match your search."}</div>`;
+    return;
+  }
+
+  matches.forEach(doc => list.appendChild(buildDocRow(doc)));
+}
+
+document.getElementById("search-input").addEventListener("input", renderSearchResults);
+
+/* ============================================================
+   Shared: build a clickable document row
+   ============================================================ */
+function buildDocRow(doc){
+  const li = document.createElement("li");
+  li.className = "doc-row";
+  li.innerHTML = `
+    <span class="doc-folder-tag">${escapeHtml(doc.folder)}</span>
+    <span class="doc-name">${escapeHtml(doc.name)}</span>
+    <span class="doc-view-hint">${doc.ext === "pdf" ? "view" : "open"}</span>`;
+  li.addEventListener("click", () => openViewer(doc));
+  return li;
+}
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+}
+
+/* ============================================================
+   DOCUMENTS TAB — grouped, alphabetical
+   ============================================================ */
+function renderDocuments(){
+  const box = document.getElementById("documents-list");
+  box.innerHTML = "";
+
+  if(!repoReady){
+    return;
+  }
+
+  if(folderNames.length === 0){
+    box.innerHTML = `<div class="empty-state"><span class="glyph">○</span>
+      No subject folders found yet. Add a folder (e.g. "Physics") with documents inside it to the repository.</div>`;
+    return;
+  }
+
+  folderNames.forEach(folder => {
+    const docsInFolder = allDocs
+      .filter(d => d.folder === folder)
+      .sort((a,b) => a.name.localeCompare(b.name));
+
+    const details = document.createElement("details");
+    details.className = "folder-group";
+    const summary = document.createElement("summary");
+    summary.innerHTML = `<span>${escapeHtml(folder)}</span><span class="count">${docsInFolder.length} document${docsInFolder.length===1?"":"s"}</span>`;
+    details.appendChild(summary);
+
+    const ul = document.createElement("ul");
+    ul.className = "doc-list";
+    docsInFolder.forEach(doc => ul.appendChild(buildDocRow(doc)));
+    details.appendChild(ul);
+
+    box.appendChild(details);
+  });
+}
+
+document.getElementById("documents-refresh-btn").addEventListener("click", () => {
+  document.getElementById("documents-refresh-btn").textContent = "Refreshing…";
+  loadRepo().then(() => {
+    document.getElementById("documents-refresh-btn").textContent = "↻ Refresh from repository";
+  });
+});
+
+/* ============================================================
+   RESULTS TAB
+   ============================================================ */
+function normalizeCode(s){
+  return String(s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+// Builds a flexible matcher for "{paperCode} - AS" that tolerates
+// spaces / hyphens / underscores / slashes between characters.
+function buildAnswerSheetRegex(code){
+  const body = String(code).trim().split("").map(ch => {
+    if(/[a-z0-9]/i.test(ch)) return ch.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return "[\\s\\-_/]*";
+  }).join("");
+  return new RegExp(body + "[\\s\\-_]*-?[\\s\\-_]*AS", "i");
+}
+
+document.getElementById("results-form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const code = document.getElementById("paper-code-input").value.trim();
+  if(!code) return;
+  showReport(code);
+});
+
+document.getElementById("results-back-btn").addEventListener("click", () => {
+  document.getElementById("results-report-view").style.display = "none";
+  document.getElementById("results-form-view").style.display = "block";
+  document.getElementById("paper-code-input").value = "";
+});
+
+function showReport(code){
+  document.getElementById("results-form-view").style.display = "none";
+  document.getElementById("results-report-view").style.display = "block";
+  document.getElementById("report-title").textContent = code;
+
+  // --- marks table ---
+  const marksArea = document.getElementById("report-marks-area");
+  const norm = normalizeCode(code);
+  const matches = marksData.filter(m => normalizeCode(m.paperCode) === norm);
+
+  if(!repoReady && !isConfigured()){
+    marksArea.innerHTML = CONFIG_MSG;
+  } else if(matches.length === 0){
+    marksArea.innerHTML = `<div class="empty-state"><span class="glyph">○</span>
+      No marks record found for paper code "${escapeHtml(code)}". Add an entry to <code>marks.json</code> in the repository.</div>`;
+  } else {
+    let rows = matches.map(m => `
+      <tr>
+        <td>${escapeHtml(m.subject ?? "—")}</td>
+        <td class="mono">${escapeHtml(m.paperCode ?? "—")}</td>
+        <td class="num mono">${m.marksObtained ?? "—"}</td>
+        <td class="num mono">${m.maximumMarks ?? "—"}</td>
+      </tr>`).join("");
+    marksArea.innerHTML = `
+      <table class="marks-table">
+        <thead><tr><th>Subject</th><th>Paper Code</th><th>Marks Obtained</th><th>Maximum Marks</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  }
+
+  // --- answer sheet lookup ---
+  const asArea = document.getElementById("report-as-area");
+  if(!repoReady){
+    asArea.innerHTML = `<p class="panel-sub" style="margin:0;">Connect to a repository to search for the answer sheet.</p>`;
+    return;
+  }
+  const regex = buildAnswerSheetRegex(code);
+  const found = allDocs.filter(d => regex.test(d.name));
+
+  if(found.length === 0){
+    asArea.innerHTML = `<p class="panel-sub" style="margin:0;">No file matching "${escapeHtml(code)} - AS" was found in the repository.</p>`;
+  } else {
+    asArea.innerHTML = "";
+    found.forEach(doc => {
+      const span = document.createElement("div");
+      span.style.marginBottom = "8px";
+      span.innerHTML = `<span class="answer-sheet-link">${escapeHtml(doc.name)}</span> <span class="doc-folder-tag">${escapeHtml(doc.folder)}</span>`;
+      span.querySelector(".answer-sheet-link").addEventListener("click", () => openViewer(doc));
+      asArea.appendChild(span);
+    });
+  }
+}
+
+/* ============================================================
+   PDF VIEWER MODAL
+   Files live in the same GitHub Pages site, so a relative path
+   is used — this avoids the "attachment" download headers that
+   raw.githubusercontent.com forces on PDFs.
+   ============================================================ */
+const viewableExts = new Set(["pdf"]);
+
+function openViewer(doc){
+  const modal = document.getElementById("viewer-modal");
+  const frame = document.getElementById("viewer-frame");
+  const title = document.getElementById("viewer-title");
+  const newTab = document.getElementById("viewer-newtab");
+
+  const relPath = "./" + doc.path.split("/").map(encodeURIComponent).join("/");
+  title.textContent = doc.path;
+  newTab.href = relPath;
+
+  if(viewableExts.has(doc.ext)){
+    frame.style.display = "block";
+    frame.src = relPath;
+  } else {
+    frame.style.display = "none";
+    frame.removeAttribute("src");
+  }
+  modal.classList.remove("hidden");
+}
+
+document.getElementById("viewer-close").addEventListener("click", closeViewer);
+document.getElementById("viewer-modal").addEventListener("click", (e) => {
+  if(e.target.id === "viewer-modal") closeViewer();
+});
+document.addEventListener("keydown", (e) => {
+  if(e.key === "Escape") closeViewer();
+});
+function closeViewer(){
+  const modal = document.getElementById("viewer-modal");
+  const frame = document.getElementById("viewer-frame");
+  modal.classList.add("hidden");
+  frame.src = "";
+}
+
+/* ============================================================
+   INIT
+   ============================================================ */
+loadRepo();
+loadMarks();
+</script>
+</body>
+</html>
