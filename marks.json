@@ -5,5 +5,5 @@
   { "subject": "Mathematics",      "paperCode": "FA-1",    "marksObtained": 32, "maximumMarks": 40 },
   { "subject": "Physics",          "paperCode": "FA-1",    "marksObtained": 28, "maximumMarks": 35 },
   { "subject": "English",          "paperCode": "FA-1",    "marksObtained": 33, "maximumMarks": 40 },
-  { "subject": "Computer Science", "paperCode": "FA-1",    "marksObtained": 38, "maximumMarks": 40 }
+  { "subject": "Computer Science", "paperCode": "FA-1",    "marksObtained": 29, "maximumMarks": 35 }
 ]
