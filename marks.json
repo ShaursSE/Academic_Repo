@@ -3,7 +3,7 @@
   { "subject": "Chemistry",        "paperCode": "56/1/1",  "marksObtained": 42, "maximumMarks": 50 },
   { "subject": "Chemistry",        "paperCode": "56/2/1",  "marksObtained": 41, "maximumMarks": 50 },
   { "subject": "Mathematics",      "paperCode": "FA-1",    "marksObtained": 32, "maximumMarks": 40 },
-  { "subject": "Physics",          "paperCode": "FA-1",    "marksObtained": 28, "maximumMarks": 35 },
-  { "subject": "English",          "paperCode": "FA-1",    "marksObtained": 33, "maximumMarks": 40 },
-  { "subject": "Computer Science", "paperCode": "FA-1",    "marksObtained": 29, "maximumMarks": 35 }
+  { "subject": "Physics",          "paperCode": "FA-1",    "marksObtained": 32, "maximumMarks": 35 },
+  { "subject": "English",          "paperCode": "FA-1",    "marksObtained": 33.5, "maximumMarks": 40 },
+  { "subject": "Computer Science", "paperCode": "FA-1",    "marksObtained": 28.5, "maximumMarks": 35 }
 ]
